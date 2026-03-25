@@ -34,7 +34,7 @@ from launch_ros.parameter_descriptions import ParameterFile, ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
@@ -272,6 +272,19 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
+    # CB3 exposes a single Primary (30001) stream client; robot_state_helper also opens Primary
+    # immediately. Starting it after ur_ros2_control_node avoids "configuration package" timeouts.
+    try:
+        _helper_delay = float(
+            LaunchConfiguration("robot_state_helper_delay_sec").perform(context)
+        )
+    except ValueError:
+        _helper_delay = 5.0
+    robot_state_helper_delayed = TimerAction(
+        period=_helper_delay,
+        actions=[robot_state_helper_node],
+    )
+
     tool_communication_node = Node(
         package="ur_robot_driver",
         condition=IfCondition(use_tool_communication),
@@ -397,7 +410,7 @@ def launch_setup(context, *args, **kwargs):
         control_node,
         ur_control_node,
         dashboard_client_node,
-        robot_state_helper_node,
+        robot_state_helper_delayed,
         tool_communication_node,
         controller_stopper_node,
         urscript_interface,
@@ -571,6 +584,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "launch_dashboard_client", default_value="true", description="Launch Dashboard Client?"
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "robot_state_helper_delay_sec",
+            default_value="5.0",
+            description="Seconds to wait before starting robot_state_helper. Non-zero avoids Primary "
+            "(port 30001) contention with ur_ros2_control_node on CB3 controllers.",
         )
     )
     declared_arguments.append(
