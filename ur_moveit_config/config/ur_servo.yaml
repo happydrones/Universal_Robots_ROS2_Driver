@@ -4,13 +4,13 @@
 use_gazebo: false # Whether the robot is started in a Gazebo simulation environment
 
 ## Properties of incoming commands
-command_in_type: "speed_units" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
+command_in_type: "unitless" # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
 scale:
   # Scale parameters are only used if command_in_type=="unitless"
-  linear:  0.6  # Max linear velocity. Meters per publish_period. Unit is [m/s]. Only used for Cartesian commands.
-  rotational:  0.3 # Max angular velocity. Rads per publish_period. Unit is [rad/s]. Only used for Cartesian commands.
+  linear:  17.80  # Max linear velocity. Meters per publish_period. Unit is [m/s]. Only used for Cartesian commands.
+  rotational:  13.3 # Max angular velocity. Rads per publish_period. Unit is [rad/s]. Only used for Cartesian commands.
   # Max joint angular/linear velocity. Rads or Meters per publish period. Only used for joint commands on joint_command_in_topic.
-  joint: 0.01
+  joint: 2.8
 # This is a fudge factor to account for any latency in the system, e.g. network latency or poor low-level
 # controller performance. It essentially increases the timestep when calculating the target pose, to move the target
 # pose farther away. [seconds]
@@ -18,7 +18,7 @@ system_latency_compensation: 0.04
 
 ## Properties of outgoing commands
 publish_period: 0.004  # 1/Nominal publish rate [seconds]
-low_latency_mode: false  # Set this to true to publish as soon as an incoming Twist command is received (publish_period is ignored)
+low_latency_mode: true  # Set this to true to publish as soon as an incoming Twist command is received (publish_period is ignored)
 
 # What type of topic does your robot driver expect?
 # Currently supported are std_msgs/Float64MultiArray or trajectory_msgs/JointTrajectory
@@ -31,6 +31,9 @@ publish_joint_accelerations: false
 
 ## Plugins for smoothing outgoing commands
 smoothing_filter_plugin_name: "online_signal_smoothing::ButterworthFilterPlugin"
+
+# 显式关闭平滑功能（注意：在某些 Humble 版本中这个参数叫这个）
+#use_smoothing: false
 
 # If is_primary_planning_scene_monitor is set to true, the Servo server's PlanningScene advertises the /get_planning_scene service,
 # which other nodes can use as a source for information about the planning environment.
@@ -58,7 +61,7 @@ num_outgoing_halt_msgs_to_publish: 4
 ## Configure handling of singularities and joint limits
 lower_singularity_threshold:  100.0  # Start decelerating when the condition number hits this (close to singularity)
 hard_stop_singularity_threshold: 200.0 # Stop when the condition number hits this
-joint_limit_margin: 0.1 # added as a buffer to joint limits [radians]. If moving quickly, make this larger.
+joint_limit_margin: 0.55555 # added as a buffer to joint limits [radians]. If moving quickly, make this larger.
 
 ## Topic names
 cartesian_command_in_topic: ~/delta_twist_cmds  # Topic for incoming Cartesian twist commands
